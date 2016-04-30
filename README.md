@@ -8,21 +8,21 @@ Build
 
 ::
 
-    rebar3 release
+    make rel
 
 Test
 ----
 
 ::
 
-    rebar3 ct
+    make ct
 
 Run
 ---
 
 ::
 
-    rebar3 run
+    make run
 
 Try
 ---
@@ -109,13 +109,3 @@ when you are bored you can stop them::
 
     make devrel-stop
 
-
-TODO
-----
-
-* define license and create LICENSE file
-
-License
--------
-
-TODO
