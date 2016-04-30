@@ -6,36 +6,26 @@ A riak_core application
 Build
 -----
 
-::
-
     make rel
 
 Test
 ----
-
-::
 
     make ct
 
 Run
 ---
 
-::
-
     make run
 
 Try
 ---
-
-::
 
     1> midi:ping().
     {pong,753586781748746817198774991869333432010090217472}
 
 Quit
 ----
-
-::
 
     2> q().
 
