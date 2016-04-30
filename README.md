@@ -1,7 +1,12 @@
-midi
+              _____     ___   _____ 
+      /\/\    \_   \   /   \  \_   \
+     /    \    / /\/  / /\ /   / /\/
+    / /\/\ \/\/ /_   / /_// /\/ /_  
+    \/    \/\____/  /___,'  \____/  
+                                 
 ===========
 
-A riak_core application
+Riak Core Distributed Application For Log Analysis.
 
 Build
 -----
