@@ -104,19 +104,29 @@ when you are bored you can stop them::
 
     make devrel-stop
 
-Reference
+Sample Usage
 -----
+
+Parser sample:
 
     [_Host, _, _User, _Time, Req, Code, BodySize, _Referer, Agent]
     0.0.0.0 - - [21/Mar/2011:18:47:27 +0000] "GET /blog/2011/aol_meet_riak.html HTTP/1.1" 200 12754 "-" "Java/1.6.0_24"
-    
-    midi:parse_log("chrome","/Users/tim-tang/playground/midi/midi.access.log").
+
+1- Load web log into bucket 'Riak':
+
     midi:parse_log("riak","/Users/tim-tang/playground/midi/midi.access.log").
 
+2- Query bucket by following keys:
+
+    midi:read("riak", "200").
+    midi:read("riak", "300").
+    midi:read("riak", "400").
     midi:read("riak", "GET").
     midi:read("riak", "total_reqs").
     midi:read("riak", "total_sent").
     midi:read("riak", "agents").
+
+3- Add & Remove items:
 
     midi:sadd("riak", "agents", "MAC OSX").
     midi:srem("riak", "agents", "MAC OSX").

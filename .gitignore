@@ -22,7 +22,6 @@ rel/packlist
 .DS_Store
 rel/build-info
 TEST-*
-*.log
 apps/midi/doc/
 ./eqc
 .eqc
