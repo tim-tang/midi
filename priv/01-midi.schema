@@ -103,3 +103,26 @@
   {datatype, {duration, s}},
   {default, "24h"}
 ]}.
+
+%% @doc The number of copies of the data that is keeped.
+%% For good consistency N  < (R + W) should be true.
+{mapping, "n", "midi.n",
+ [{datatype, integer},
+  {default, 3}
+]}.
+
+%% @doc The number of replies requried for a read request to succeed
+%% The lower the value the faster the replies but the more likely stale
+%% data is returend.
+{mapping, "r", "midi.r",
+ [{datatype, integer},
+  {default, 2}
+]}.
+
+%% @doc The number of replies requried for a write request to succeed
+%% The lower the value the faster the write but the more likely to only
+%% write partial data.
+{mapping, "w", "midi.w",
+ [{datatype, integer},
+  {default, 2}
+]}.

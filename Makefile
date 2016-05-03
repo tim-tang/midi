@@ -63,7 +63,7 @@ start:
 stop:
 	$(BASEDIR)/$(RELPATH)/bin/$(APPNAME) stop
 
-console:
+console: compile
 	$(BASEDIR)/$(RELPATH)/bin/$(APPNAME) console
 
 attach:

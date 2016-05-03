@@ -104,3 +104,8 @@ when you are bored you can stop them::
 
     make devrel-stop
 
+Reference
+-----
+
+    [_Host, _, _User, _Time, Req, Code, BodySize, _Referer, Agent]
+    0.0.0.0 - - [21/Mar/2011:18:47:27 +0000] "GET /blog/2011/aol_meet_riak.html HTTP/1.1" 200 12754 "-" "Java/1.6.0_24"

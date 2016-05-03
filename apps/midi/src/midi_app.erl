@@ -15,6 +15,12 @@ start(_StartType, _StartArgs) ->
             ok = riak_core:register([{vnode_module, midi_vnode}]),
             ok = riak_core_node_watcher:service_up(midi, self()),
 
+            ok = riak_core:register([{vnode_module, midi_crunch_vnode}]),
+            ok = riak_core_node_watcher:service_up(midi_crunch, self()),
+
+            ok = riak_core:register([{vnode_module, midi_stat_vnode}]),
+            ok = riak_core_node_watcher:service_up(midi_stat, self()),
+
             {ok, Pid};
         {error, Reason} ->
             {error, Reason}
