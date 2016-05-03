@@ -113,7 +113,6 @@ handle_command({set, {ReqID, _}, StatName, Val}, _Sender, #state{stats=Stats0}=S
             catch
                 _:_ -> lager:error("Failed to set value")
             end,
-    lager:info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ~p~n", [Stats]),
     {reply, {ok, ReqID}, State#state{stats=Stats}};
 
 handle_command({repair, undefined, StatName, Obj}, _Sender, #state{stats=Stats0}=State) ->
@@ -145,7 +144,6 @@ handle_command({append, {ReqID, _}, StatName, Val}, _Sender, #state{stats=Stats0
             catch 
                 _:_ -> dict:store(StatName, [Val], Stats0)
             end,
-    lager:info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ~p~n", [Stats]),
     {reply, {ok, ReqID}, State#state{stats=Stats}};
 
 handle_command({sadd, {ReqID, Coordinator}, StatName, Val},

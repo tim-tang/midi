@@ -105,14 +105,12 @@ execute(timeout, SD0=#state{req_id=ReqID,
         _ ->
             midi_stat_vnode:Op(Preflist, {ReqID, Cordinator}, StatName, Val)
     end,
-    lager:info("************************** reply ~p~n", [SD0]),
     {next_state, waiting, SD0}.
 
 %% @doc Wait for W write reqs to respond.
 waiting({ok, ReqID}, SD0=#state{from=From, w=W, num_w=NumW0}) ->
     NumW = NumW0 + 1,
     SD = SD0#state{num_w=NumW},
-    lager:info("================ ~p~n", [NumW]),
     case NumW of 
         W ->
             From ! {ReqID, ok},
