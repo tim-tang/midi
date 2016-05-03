@@ -66,7 +66,6 @@ init([Partition]) ->
     {ok, #state{partition=Partition,reg=Reg}}.
 
 handle_command({crunch, Client, Entry}, _Sender, #state{reg=Reg}=State) ->
-    lager:info("~p~n", [{crunch, State#state.partition}]),
     lists:foreach(match(Client, Entry), Reg),
     {noreply, State}.
 
@@ -122,18 +121,21 @@ match(Client, Entry) ->
 combined_lf({Client, _Entry, _Regexp}, [_Entry, _Host, _, _User, _Time, Req, Code, BodySize, _Referer, Agent]) ->
     midi:sadd(Client, "agents", Agent),
     midi:incrby(Client, "total_sent", list_to_integer(BodySize)),
-    [Method, _Resource, _Protocol] = string:tokens(Req, " "),
-    midi:incr(Client, Method),
-    case Code of
-        [$2, _, _] ->
-            midi:incr(Client, "200");
-        [$3, _, _] ->
-            midi:incr(Client, "300");
-        [$4, _, _] ->
-            midi:incr(Client, "400");
-        [$5, _, _] ->
-            midi:incr(Client, "500")
-    end,
-    midi:incr(Client, "total_reqs").
-
-
+    
+    case string:equal(Req, "-") of 
+        false ->
+            [Method, _Resource, _Protocol] = string:tokens(Req, " "),
+            midi:incr(Client, Method),
+            case Code of
+                [$2, _, _] ->
+                    midi:incr(Client, "200");
+                [$3, _, _] ->
+                    midi:incr(Client, "300");
+                [$4, _, _] ->
+                    midi:incr(Client, "400");
+                [$5, _, _] ->
+                    midi:incr(Client, "500")
+            end,
+            midi:incr(Client, "total_reqs");
+        true -> lager:info("Invalid logger entry...")
+    end.

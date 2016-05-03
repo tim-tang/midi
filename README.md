@@ -109,3 +109,14 @@ Reference
 
     [_Host, _, _User, _Time, Req, Code, BodySize, _Referer, Agent]
     0.0.0.0 - - [21/Mar/2011:18:47:27 +0000] "GET /blog/2011/aol_meet_riak.html HTTP/1.1" 200 12754 "-" "Java/1.6.0_24"
+    
+    midi:parse_log("chrome","/Users/tim-tang/playground/midi/midi.access.log").
+    midi:parse_log("riak","/Users/tim-tang/playground/midi/midi.access.log").
+
+    midi:read("riak", "GET").
+    midi:read("riak", "total_reqs").
+    midi:read("riak", "total_sent").
+    midi:read("riak", "agents").
+
+    midi:sadd("riak", "agents", "MAC OSX").
+    midi:srem("riak", "agents", "MAC OSX").
