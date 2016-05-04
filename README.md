@@ -8,15 +8,16 @@
 
 Riak Core Distributed Application For Log Analysis.
 
+Prerequisition
+-----
+
+- Rebar3
+- Erlang/OTP 18
+
 Build
 -----
 
     make rel
-
-Test
-----
-
-    make ct
 
 Run
 ---
@@ -104,13 +105,15 @@ when you are bored you can stop them::
 
     make devrel-stop
 
-Sample Usage
------
 
-Parser sample:
+Sample Parser:
+---
 
     [_Host, _, _User, _Time, Req, Code, BodySize, _Referer, Agent]
     0.0.0.0 - - [21/Mar/2011:18:47:27 +0000] "GET /blog/2011/aol_meet_riak.html HTTP/1.1" 200 12754 "-" "Java/1.6.0_24"
+
+Testing:
+----
 
 1- Load web log into bucket 'Riak':
 
