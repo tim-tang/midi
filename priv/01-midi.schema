@@ -126,3 +126,9 @@
  [{datatype, integer},
   {default, 2}
 ]}.
+
+%% @doc The number of async works requried for a crunch vnode to parse log
+{mapping, "async_workers", "midi.async_workers",
+ [{datatype, integer},
+  {default, 5}
+]}.

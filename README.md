@@ -114,19 +114,28 @@ Parser sample:
 
 1- Load web log into bucket 'Riak':
 
-    midi:parse_log("riak","/Users/tim-tang/playground/midi/midi.access.log").
+    midi:parse_log("rc","/Users/tim-tang/playground/midi/midi.access.log").
 
 2- Query bucket by following keys:
 
-    midi:read("riak", "200").
-    midi:read("riak", "300").
-    midi:read("riak", "400").
-    midi:read("riak", "GET").
-    midi:read("riak", "total_reqs").
-    midi:read("riak", "total_sent").
-    midi:read("riak", "agents").
+    midi:read("rc", "200").
+    midi:read("rc", "300").
+    midi:read("rc", "400").
+    midi:read("rc", "GET").
+    midi:read("rc", "HEAD").
+    midi:read("rc", "total_reqs").
+    midi:read("rc", "total_sent").
+    midi:read("rc", "agents").
 
 3- Add & Remove items:
 
-    midi:sadd("riak", "agents", "MAC OSX").
-    midi:srem("riak", "agents", "MAC OSX").
+    midi:sadd("rc", "agents", "MAC OSX").
+    midi:srem("rc", "agents", "MAC OSX").
+
+4- Tree node cluster mode, to check preflist spread on 3 different nodes:
+
+    midi:get_dbg_preflist("rc", "total_reqs").
+
+5- Kill one node to compare before and after preflist, check out the fallback vnode.
+
+6- 

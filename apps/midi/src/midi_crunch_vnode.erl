@@ -59,15 +59,23 @@ crunch(IdxNode, Client, Entry) ->
 %%% Callbacks
 %%%===================================================================
 
+%% @doc start 5 vnode worker to parse the log file.
 init([Partition]) ->
-    Reg = [
-           {?COMBINED_LF, fun ?MODULE:combined_lf/2}
-          ],
-    {ok, #state{partition=Partition,reg=Reg}}.
+    WorkerPoolSize = application:get_env(midi, async_workers, 5),
+    CrunchWorkerPool = {pool, midi_crunch_worker, WorkerPoolSize, []},
+    Reg = [{?COMBINED_LF, fun ?MODULE:combined_lf/2}],
+    {ok, #state{partition=Partition, reg=Reg}, [CrunchWorkerPool]}.
 
 handle_command({crunch, Client, Entry}, _Sender, #state{reg=Reg}=State) ->
-    lists:foreach(match(Client, Entry), Reg),
-    {noreply, State}.
+    AsyncCrunchWork = fun() ->
+                        lists:foreach(match(Client, Entry), Reg)
+                      end,
+    FinishFn = fun() ->
+                    riak_core_vnode:reply(_Sender, ok)
+               end,
+    {async, {crunch, AsyncCrunchWork, FinishFn}, _Sender, State}.
+    %lists:foreach(match(Client, Entry), Reg)
+    %{noreply, State}.
 
 handle_handoff_command(_Message, _Sender, State) ->
     {noreply, State}.
@@ -139,3 +147,9 @@ combined_lf({Client, _Entry, _Regexp}, [_Entry, _Host, _, _User, _Time, Req, Cod
             midi:incr(Client, "total_reqs");
         true -> lager:info("Invalid logger entry...")
     end.
+
+%%%===================================================================
+%%% Internal Functions
+%%%===================================================================
+reply(Reply, Sender, #state{partition=P}) ->
+    riak_core_vnode:reply(Sender, {ok, P, Reply}).
