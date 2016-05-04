@@ -36,7 +36,6 @@
 
 -record(state, {
           partition,
-          node,
           reg            %% registry [regexp => fun]
          }).
 
@@ -67,7 +66,7 @@ init([Partition]) ->
     WorkerPoolSize = application:get_env(midi, async_workers, 5),
     CrunchWorkerPool = {pool, midi_crunch_worker, WorkerPoolSize, []},
     Reg = [{?COMBINED_LF, fun ?MODULE:combined_lf/2}],
-    {ok, #state{reg=Reg}, [CrunchWorkerPool]}.
+    {ok, #state{partition=Partition, reg=Reg}, [CrunchWorkerPool]}.
 
 handle_command({crunch, {ReqID, _}, Client, Entry}, _Sender, #state{reg=Reg}=State) ->
     AsyncCrunchWork = fun() ->

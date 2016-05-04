@@ -112,10 +112,10 @@ Sample Parser:
     [_Host, _, _User, _Time, Req, Code, BodySize, _Referer, Agent]
     0.0.0.0 - - [21/Mar/2011:18:47:27 +0000] "GET /blog/2011/aol_meet_riak.html HTTP/1.1" 200 12754 "-" "Java/1.6.0_24"
 
-Testing:
+Testing::
 ----
 
-1- Load web log into bucket 'Riak':
+1- Load web log into bucket 'rc':
 
     midi:parse_log("rc","/Users/tim-tang/playground/midi/midi.access.log").
 
@@ -132,13 +132,25 @@ Testing:
 
 3- Add & Remove items:
 
-    midi:sadd("rc", "agents", "MAC OSX").
-    midi:srem("rc", "agents", "MAC OSX").
+    midi:sadd("rc", "midi", "100").
+    midi:read("rc", "midi").
+    midi:srem("rc", "midi", "100").
 
-4- Tree node cluster mode, to check preflist spread on 3 different nodes:
 
+Testing Cluster::
+---
+
+Scenario-1 => 
+
+    3 node cluster, to check preflist spread on 3 different nodes:
     midi:get_dbg_preflist("rc", "total_reqs").
 
-5- Kill one node to compare before and after preflist, check out the fallback vnode.
+> Kill one node to compare before and after preflist, check out the fallback vnode.
 
-6- 
+Scenario-2 => 
+
+    3 node cluster, add an item first, then kill one node. remove this item. restore dead node. query this item.
+    
+Scenario-3 => 
+
+    

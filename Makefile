@@ -48,8 +48,11 @@ devrel-cluster-plan:
 devrel-cluster-commit:
 	$(BASEDIR)/_build/dev1/rel/midi/bin/$(APPNAME)-admin cluster commit
 
-devrel-status:
+devrel-st:
 	$(BASEDIR)/_build/dev1/rel/midi/bin/$(APPNAME)-admin member-status
+
+devrel-rs:
+	$(BASEDIR)/_build/dev1/rel/midi/bin/$(APPNAME)-admin ring-status
 
 devrel-ping:
 	for d in $(BASEDIR)/_build/dev*; do $$d/rel/midi/bin/$(APPNAME) ping; done

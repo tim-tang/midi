@@ -7,13 +7,13 @@
          terminate/2,
          handle_command/3,
          is_empty/1,
-         delete/1,
          handle_handoff_command/3,
          handoff_starting/2,
          handoff_cancelled/1,
          handoff_finished/2,
          handle_handoff_data/2,
          encode_handoff_item/2,
+         delete/1,
          handle_coverage/4,
          handle_exit/3]).
 
@@ -182,20 +182,54 @@ handle_command({srem, {ReqID, Coordinator}, StatName, Val},
     Stats = dict:store(StatName, SB, Stats0),
     {reply, {ok, ReqID}, State#state{stats=Stats}}.
 
+%% Active vnodes operate in three states: normal, handoff, and forwarding.
+%%
+%% In the normal state, vnode commands are passed to handle_command. When
+%% a handoff is triggered, handoff_target is set and the vnode
+%% is said to be in the handoff state.
+%%
+%% In the handoff state, vnode commands are passed to handle_handoff_command.
+%% However, a vnode may be blocked during handoff (and therefore not servicing
+%% commands) if the handoff procedure is blocking (eg. in riak_kv when not
+%% using async fold).
+%%
+%% After handoff, a vnode may move into forwarding state. The forwarding state
+%% is a product of the new gossip/membership code and will not occur if the
+%% node is running in legacy mode. The forwarding state represents the case
+%% where the vnode has already handed its data off to the new owner, but the
+%% new owner is not yet listed as the current owner in the ring. This may occur
+%% because additional vnodes are still waiting to handoff their data to the
+%% new owner, or simply because the ring has yet to converge on the new owner.
+%% In the forwarding state, all vnode commands and coverage commands are
+%% forwarded to the new owner for processing.
+%%
+%% The above becomes a bit more complicated when the vnode takes part in resizing
+%% the ring, since several transfers with a single vnode as the source are necessary
+%% to complete the operation. A vnode will remain in the handoff state, for, potentially,
+%% more than one transfer and may be in the handoff state despite there being no active
+%% transfers with this vnode as the source. During this time requests that can be forwarded
+%% to a partition for which the transfer has already completed, are forwarded. All other
+%% requests are passed to handle_handoff_command.
 handle_handoff_command(?FOLD_REQ{foldfun=Fun, acc0=Acc0}, _Sender, State) ->
+    lager:info("[STAT VNODE HANDOFF] - Handle Accumulation ~p Fn ~p~n.", [Acc0, Fun]),
     Acc = dict:fold(Fun, Acc0, State#state.stats),
     {reply, Acc, State}.
 
+%% @doc 2 types of handoff: ownership/hinted handoff 
 handoff_starting(_TargetNode, _State) ->
+    lager:info("[STAT VNODE HANDOFF] - Starting On Node => ~p~n", [_TargetNode]),
     {true, _State}.
 
 handoff_cancelled(State) ->
+    lager:info("[STAT VNODE HANDOFF] - Cancelled!"),
     {ok, State}.
 
 handoff_finished(_TargetNode, State) ->
+    lager:info("[STAT VNODE HANDOFF] - Partition => ~p Node => ~p~n Finished! ", [State#state.partition, _TargetNode]),
     {ok, State}.
 
 handle_handoff_data(Data, #state{stats=Stats0}=State) ->
+    lager:info("[STAT VNODE HANDOFF] - Handle Data => ~p~n", [Data]),
     {StatName, HObj} = binary_to_term(Data),
     MObj =
         case dict:find(StatName, Stats0) of
@@ -206,16 +240,26 @@ handle_handoff_data(Data, #state{stats=Stats0}=State) ->
     {reply, ok, State#state{stats=Stats}}.
 
 encode_handoff_item(StatName, Val) ->
+    lager:info("[STAT VNODE HANDOFF] - Encoding Data Key => ~p Value => ~p~n", [StatName, Val]),
     term_to_binary({StatName,Val}).
 
 is_empty(State) ->
-    case dict:size(State#state.stats) of
-        0 -> {true, State};
-        _ -> {false, State}
+    case dict:is_empty(State#state.stats) of
+        true -> {true, State};
+        false -> {false, State}
     end.
 
-delete(State) ->
-    {ok, State}.
+%% @doc after handoff_finished will delete unused data on this vnode.
+%% stats is dict module. 
+%% Attention if you use db to store data, you need to delete it from db.
+delete(#state{partition=Partition, stats=Stats}=State) ->
+    case dict:is_empty(Stats) of
+        true ->
+            {ok, State};
+        false ->
+            lager:info("[STAT VNODE HANDOFF] - Purge Data In Dict, Partition => ~p~n", [Partition]),
+            {ok, State#state{stats=dict:new()}}
+    end.
 
 handle_coverage(_Req, _KeySpaces, _Sender, State) ->
     {stop, not_implemented, State}.
