@@ -20,10 +20,6 @@ start_link() ->
 %% ===================================================================
 
 init(_Args) ->
-    VMaster = {midi_vnode_master,
-                  {riak_core_vnode_master, start_link, [midi_vnode]},
-                  permanent, 5000, worker, [riak_core_vnode_master]},
-
     Crunch = {midi_crunch_vnode_master,
              {riak_core_vnode_master, start_link, [midi_crunch_vnode]},
              permanent, 5000, worker, [riak_core_vnode_master]},
@@ -46,4 +42,4 @@ init(_Args) ->
 
     {ok,
         {{one_for_one, 5, 10},
-          [VMaster, Crunch, Stat, CrunchFsmSup, WriteFsmSup, ReadFsmSup]}}.
+          [Crunch, Stat, CrunchFsmSup, WriteFsmSup, ReadFsmSup]}}.
