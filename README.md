@@ -149,8 +149,13 @@ Scenario-1 =>
 
 Scenario-2 => 
 
-    3 node cluster, add an item first, then kill one node. remove this item. restore dead node. query this item.
+    3 nodes cluster, add an item first, then kill one node. remove this item. restore dead node. query this item.
     
-Scenario-3 => 
+Scenario-3 (Read Repair Testing)=> 
 
-    
+    - 3 nodes cluster.
+    - Take a node down -- this will cause fallback vnodes to be created.
+    - Write some data -- this will cause the fallback vnode to be populated with parallel/conflicting objects relative to the other vnodes. It's important that you not perform a rts:get or else read repair will reconcile them.
+    - Restart the downed node -- this will cause the primary to come online with no data.
+    - Perform a rts:get to invoke read repair. At this point all primaries have the correct data but you have a fallback that has conflicting data. After some time the fallback will realize the primary is up and will begin handoff.
+    - Wait for handoff messages to appear in the console. Retry the rts:get and make sure the data is still correct and no further read repair was made. This proves that the data was reconciled prior to writing it.

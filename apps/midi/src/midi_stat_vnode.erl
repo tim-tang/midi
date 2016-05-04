@@ -228,6 +228,7 @@ handoff_finished(_TargetNode, State) ->
     lager:info("[STAT VNODE HANDOFF] - Partition => ~p Node => ~p~n Finished! ", [State#state.partition, _TargetNode]),
     {ok, State}.
 
+%% @doc Handle handoff data, merge handoff data with current vnode/partition data.
 handle_handoff_data(Data, #state{stats=Stats0}=State) ->
     lager:info("[STAT VNODE HANDOFF] - Handle Data => ~p~n", [Data]),
     {StatName, HObj} = binary_to_term(Data),
@@ -243,6 +244,9 @@ encode_handoff_item(StatName, Val) ->
     lager:info("[STAT VNODE HANDOFF] - Encoding Data Key => ~p Value => ~p~n", [StatName, Val]),
     term_to_binary({StatName,Val}).
 
+%% @doc check current vnode/partition has data to handoff or not.
+%% if there is no handoff data will call handoff_finished/1
+%% otherwise riak core will send out the data.
 is_empty(State) ->
     case dict:is_empty(State#state.stats) of
         true -> {true, State};
