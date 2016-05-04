@@ -30,7 +30,7 @@
 %%
 %% num_w: The number of successful write replies.
 -record(state, {req_id :: pos_integer(),
-                cordinator :: node(),
+                coordinator :: node(),
                 from :: pid(),
                 client :: string(),
                 stat_name :: string(),
@@ -60,7 +60,13 @@ write(Client, StatName, Op) ->
 write(Client, StatName, Op, Val) ->
     ReqID = midi_utils:mk_reqid(),
     midi_write_fsm_sup:start_write_fsm([ReqID, self(), Client, StatName, Op, Val]),
-    {ok, ReqID}.
+    receive
+        {ReqID, ok} -> 
+            ok;
+        {ReqID, ok, Val} -> {ok, Val}
+    after ?TIMEOUT->
+        {error, timeout}
+    end.
 
 
 %%%===================================================================
@@ -72,7 +78,7 @@ init([ReqID, From, Client, StatName, Op, Val]) ->
     N = application:get_env(midi, n, ?DEFAULT_N),
     W = application:get_env(midi, w, ?DEFAULT_W),
     SD = #state{req_id=ReqID,
-                cordinator=node(),
+                coordinator=node(),
                 from=From,
                 client=Client,
                 stat_name=StatName,
@@ -94,16 +100,16 @@ prepare(timeout, SD0=#state{client=Client,
 %% @doc Execute the write request and then go into waiting state to
 %% verify it has meets consistency requirements.
 execute(timeout, SD0=#state{req_id=ReqID,
-                            cordinator=Cordinator,
+                            coordinator=Coordinator,
                             stat_name=StatName,
                             op=Op,
                             val=Val,
                             preflist=Preflist}) ->
     case Val of
         undefined ->
-            midi_stat_vnode:Op(Preflist, {ReqID, Cordinator}, StatName);
+            midi_stat_vnode:Op(Preflist, {ReqID, Coordinator}, StatName);
         _ ->
-            midi_stat_vnode:Op(Preflist, {ReqID, Cordinator}, StatName, Val)
+            midi_stat_vnode:Op(Preflist, {ReqID, Coordinator}, StatName, Val)
     end,
     {next_state, waiting, SD0}.
 

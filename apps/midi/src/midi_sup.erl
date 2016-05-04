@@ -32,6 +32,10 @@ init(_Args) ->
             {riak_core_vnode_master, start_link, [midi_stat_vnode]},
             permanent, 5000, worker, [riak_core_vnode_master]},
 
+    CrunchFsmSup = {midi_crunch_fsm_sup,
+                 {midi_crunch_fsm_sup, start_link, []},
+                 permanent, infinity, supervisor, [midi_crunch_fsm_sup]},
+
     WriteFsmSup = {midi_write_fsm_sup,
                  {midi_write_fsm_sup, start_link, []},
                  permanent, infinity, supervisor, [midi_write_fsm_sup]},
@@ -42,4 +46,4 @@ init(_Args) ->
 
     {ok,
         {{one_for_one, 5, 10},
-          [VMaster, Crunch, Stat, WriteFsmSup, ReadFsmSup]}}.
+          [VMaster, Crunch, Stat, CrunchFsmSup, WriteFsmSup, ReadFsmSup]}}.

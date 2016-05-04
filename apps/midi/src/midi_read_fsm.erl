@@ -39,7 +39,14 @@ start_link(ReqID, From, Client, StatName, Opts) ->
 read(Client, StatName, Opts) ->
     ReqID = midi_utils:mk_reqid(),
     midi_read_fsm_sup:start_read_fsm([ReqID, self(), Client, StatName, Opts]),
-    {ok, ReqID}.
+    receive
+        {ReqID, ok} -> 
+            ok;
+        {ReqID, ok, Val} -> {ok, Val}
+    after ?TIMEOUT ->
+        {error, timeout}
+    end.
+
 
 %%%===================================================================
 %%% States

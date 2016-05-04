@@ -32,10 +32,11 @@
         ]).
 
 %% API
--export([crunch/3]).
+-export([crunch/4]).
 
 -record(state, {
           partition,
+          node,
           reg            %% registry [regexp => fun]
          }).
 
@@ -49,9 +50,11 @@
 start_vnode(I) ->
     riak_core_vnode_master:get_vnode_pid(I, ?MODULE).
 
-crunch(IdxNode, Client, Entry) ->
-    riak_core_vnode_master:command(IdxNode,
-                                   {crunch, Client, Entry},
+%% @doc Identity = {ReqId, Coordinator}.
+crunch(Preflist, Identity, Client, Entry) ->
+    riak_core_vnode_master:command(Preflist,
+                                   {crunch, Identity, Client, Entry},
+                                   {fsm, undefined, self()},
                                    ?MASTER).
 
 
@@ -64,18 +67,17 @@ init([Partition]) ->
     WorkerPoolSize = application:get_env(midi, async_workers, 5),
     CrunchWorkerPool = {pool, midi_crunch_worker, WorkerPoolSize, []},
     Reg = [{?COMBINED_LF, fun ?MODULE:combined_lf/2}],
-    {ok, #state{partition=Partition, reg=Reg}, [CrunchWorkerPool]}.
+    {ok, #state{reg=Reg}, [CrunchWorkerPool]}.
 
-handle_command({crunch, Client, Entry}, _Sender, #state{reg=Reg}=State) ->
+handle_command({crunch, {ReqID, _}, Client, Entry}, _Sender, #state{reg=Reg}=State) ->
     AsyncCrunchWork = fun() ->
                         lists:foreach(match(Client, Entry), Reg)
                       end,
     FinishFn = fun() ->
-                    riak_core_vnode:reply(_Sender, ok)
+                    %riak_core_vnode:reply(_Sender, ok)
+                    reply({ok, ReqID}, _Sender)
                end,
     {async, {crunch, AsyncCrunchWork, FinishFn}, _Sender, State}.
-    %lists:foreach(match(Client, Entry), Reg)
-    %{noreply, State}.
 
 handle_handoff_command(_Message, _Sender, State) ->
     {noreply, State}.
@@ -151,5 +153,5 @@ combined_lf({Client, _Entry, _Regexp}, [_Entry, _Host, _, _User, _Time, Req, Cod
 %%%===================================================================
 %%% Internal Functions
 %%%===================================================================
-reply(Reply, Sender, #state{partition=P}) ->
-    riak_core_vnode:reply(Sender, {ok, P, Reply}).
+reply(Reply, Sender) ->
+    riak_core_vnode:reply(Sender, Reply).

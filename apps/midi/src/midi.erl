@@ -21,7 +21,7 @@
          get_dbg_preflist/3,
          dbg_op/5, dbg_op/6]).
 
--define(TIMEOUT, 5000).
+%-define(TIMEOUT, 5000).
 
 
 %%%===================================================================
@@ -60,7 +60,6 @@ parse_log(Client, FilePath, S, N) ->
     {ok, Data} ->
       LinesData = binary:split(Data, [<<"\n">>], [global]),
       lists:foreach(fun(LineData) -> crunch(Client, binary_to_list(LineData)) end, lists:sublist(LinesData, S, N)),
-      lager:info("~p entries processed~n", [length(LinesData)]),
       ok;
     {error, Reason} ->
       lager:error("Read file ~s failed: ~p~n", [FilePath, Reason])
@@ -68,20 +67,15 @@ parse_log(Client, FilePath, S, N) ->
 
 %% @doc Process an entry.
 crunch(Client, Entry) ->
-    DocIdx = riak_core_util:chash_key({list_to_binary(Client),
-                                       term_to_binary(os:timestamp())}),
-    PrefList = riak_core_apl:get_apl(DocIdx, 1, midi_crunch),
-    [IdxNode] = PrefList,
-    midi_crunch_vnode:crunch(IdxNode, Client, Entry).
+    midi_crunch_fsm:crunch(Client, Entry).
 
 %% @doc Get a stat's value.
 read(Client, StatName) ->
     read(Client, StatName, []).
 
 read(Client, StatName, Opts) ->
-    {ok, ReqID} = midi_read_fsm:read(Client, StatName, Opts),
-    {ok, Val} = wait_for_reqid(ReqID, ?TIMEOUT),
-    pretty_print(Val).
+    {ok, Val} = midi_read_fsm:read(Client, StatName, Opts),
+    midi_utils:pretty_print(Val).
 
 get_dbg_preflist(Client, StatName) ->
     [get_dbg_preflist(Client, StatName, N) || N <- lists:seq(1,3)].
@@ -152,25 +146,7 @@ dbg_op(Op, Coordinator, Nodes, Client, StatName, Val) ->
 %%% Internal Functions
 %%%===================================================================
 do_write(Client, StatName, Op) ->
-    {ok, ReqID} = midi_write_fsm:write(Client, StatName, Op),
-    wait_for_reqid(ReqID, ?TIMEOUT).
+    midi_write_fsm:write(Client, StatName, Op).
 
 do_write(Client, StatName, Op, Val) ->
-    {ok, ReqID} = midi_write_fsm:write(Client, StatName, Op, Val),
-    wait_for_reqid(ReqID, ?TIMEOUT).
-
-wait_for_reqid(ReqID, Timeout) ->
-    receive
-        {ReqID, ok} -> 
-            ok;
-        {ReqID, ok, Val} -> {ok, Val}
-    after Timeout ->
-        {error, timeout}
-    end.
-
-pretty_print(#incr{total=Total}) -> Total;
-pretty_print(Val) when element(1, Val) == statebox ->
-    pretty_print(statebox:value(Val));
-pretty_print(Val) when element(1, Val) == set -> sets:to_list(Val);
-pretty_print(Val) -> Val.
-
+    midi_write_fsm:write(Client, StatName, Op, Val).

@@ -1,8 +1,12 @@
 -define(PRINT(Var), io:format("DEBUG: ~p:~p - ~p~n~n ~p~n~n", [?MODULE, ?LINE, ??Var, Var])).
 
+-define(TIMEOUT, 5000).
+
 -define(DEFAULT_N, 3).
 -define(DEFAULT_R, 2).
 -define(DEFAULT_W, 2).
+-define(DEFAULT_CRUNCH_N, 3).
+-define(DEFAULT_CRUNCH_W, 1).
 
 -define(DEFAULT_TIMEOUT, 10000).
 -define(STATEBOX_EXPIRE, 60000).
