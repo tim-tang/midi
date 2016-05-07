@@ -66,6 +66,7 @@
   {git,"git://github.com/manopapad/proper",
        {ref,"6b562a2fb8a719cee5d99d7a93d5fe56c89a8824"}},
   1},
+ {<<"recon">>,{pkg,<<"recon">>,<<"2.3.1">>},0},
  {<<"riak_core">>,
   {git,"git://github.com/basho/riak_core",
        {ref,"e86aaa62c80a3774ff7c3f74e71e54fa50c93663"}},
