@@ -12,8 +12,3 @@ pretty_print(Val) when element(1, Val) == statebox ->
     pretty_print(statebox:value(Val));
 pretty_print(Val) when element(1, Val) == set -> sets:to_list(Val);
 pretty_print(Val) -> Val.
-
-
-
-
-
