@@ -32,6 +32,10 @@ init(_Args) ->
                  {midi_crunch_fsm_sup, start_link, []},
                  permanent, infinity, supervisor, [midi_crunch_fsm_sup]},
 
+    CoverageFsmSup = {midi_coverage_fsm_sup,
+                 {midi_coverage_fsm_sup, start_link, []},
+                 permanent, infinity, supervisor, [midi_coverage_fsm_sup]},
+
     WriteFsmSup = {midi_write_fsm_sup,
                  {midi_write_fsm_sup, start_link, []},
                  permanent, infinity, supervisor, [midi_write_fsm_sup]},
@@ -42,4 +46,4 @@ init(_Args) ->
 
     {ok,
         {{one_for_one, 5, 10},
-          [Crunch, Stat, CrunchFsmSup, WriteFsmSup, ReadFsmSup]}}.
+          [Crunch, Stat, CrunchFsmSup, CoverageFsmSup, WriteFsmSup, ReadFsmSup]}}.
