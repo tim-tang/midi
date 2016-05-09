@@ -1,5 +1,5 @@
 BASEDIR = $(shell pwd)
-REBAR = rebar3
+REBAR = $(BASEDIR)/rebar3
 RELPATH = _build/default/rel/midi
 APPNAME = midi
 SHELL = /bin/bash
