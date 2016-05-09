@@ -37,11 +37,11 @@ ping() ->
     lager:info("Routing Key => ~p~n", [DocIdx]),
     %apl => active preference list.
     %Vnode Type: primary/fallback
-    PrefList = riak_core_apl:get_primary_apl(DocIdx, 1, midi),
+    PrefList = riak_core_apl:get_primary_apl(DocIdx, 1, midi_stat),
     lager:info("Preference List => ~p~n", [PrefList]),
     [{IndexNode, _Type}] = PrefList,
     %{Partitionid, Node} = IndexNode
-    riak_core_vnode_master:sync_spawn_command(IndexNode, ping, midi_vnode_master).
+    riak_core_vnode_master:sync_spawn_command(IndexNode, ping, midi_stat_vnode_master).
 
 % @doc Process entries from a file
 parse_log(Client, FilePath) ->

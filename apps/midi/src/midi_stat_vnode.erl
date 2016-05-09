@@ -96,6 +96,9 @@ srem(Preflist, Identity, StatName, Val) ->
 init([Partition]) ->
     {ok, #state{partition=Partition, stats=dict:new(), node=node()}}.
 
+handle_command(ping, _Sender, State) ->
+    {reply, {pong, State#state.partition}, State};
+
 handle_command({get, ReqID, StatName}, _Sender,
                #state{stats=Stats, partition=Partition, node=Node}=State) ->
     Reply =
