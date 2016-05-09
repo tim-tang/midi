@@ -265,11 +265,11 @@ delete(#state{partition=Partition, stats=Stats}=State) ->
             {ok, State#state{stats=dict:new()}}
     end.
 
-handle_coverage({keys, _}, _KeySpaces, {_, RefId, _},
+handle_coverage({keys}, _KeySpaces, {_, RefId, _},
                         State=#state{stats=Stats}) ->
     Keys = dict:fetch_keys(Stats),
-    lager:info("[Stat VNode Coverage] - Stats => ~p~n", [Stats]),
-    lager:info("[Stat VNode Coverage] - ReferId => ~p~n", [RefId]),
+    %lager:info("[Stat VNode Coverage] - Keys => ~p~n", [Keys]),
+    %% RefId => {_ReqId, {Partition, Node}
     {reply, {RefId, Keys}, State};
 handle_coverage(_Req, _KeySpaces, _Sender, State) ->
     {stop, not_implemented, State}.

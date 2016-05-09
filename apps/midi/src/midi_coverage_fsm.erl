@@ -15,20 +15,12 @@
 
 -type merge_fn() ::  fun(([term()]) -> term()).
 
-%-record(state, {replies = #{} :: #{binary() => pos_integer()},
-%                seen = sets:new() :: sets:set(),
-%                r = 1 :: pos_integer(),
-%                reqid :: integer(),
-%                from :: pid(),
-%                reqs :: list(),
-%                merge_fn = fun([E | _]) -> E  end :: merge_fn(),
-%                completed = [] :: [binary()]}).
-
 -record(state, {req_id :: integer(), 
                 from :: pid(), 
                 r = 1 :: integer(), 
                 merge_fn = fun([E | _]) -> E  end :: merge_fn(),
                 request, 
+                seen = sets:new() :: sets:set(),
                 accum=[] :: [binary()]}). 
 
 
@@ -81,91 +73,20 @@ process_results({{_ReqId, {Partition, Node}}, Data},
      NewAccum = [{Partition, Node, Data}|Accum],
      {done, State#state{accum=NewAccum}};
 
-%process_results({Type, _ReqID, _IdxNode, Obj},
-%                 State = #state{reqid = ReqID, from = From})
-%    when Type =:= partial;
-%         Type =:= ok
-%         ->
-%      State1 = lists:foldl(fun update/2, State, Obj),
-%      State2 = case length(State1#state.completed) of
-%                   L when L >= ?PARTIAL_SIZE ->
-%                       From ! {partial, ReqID, State1#state.completed},
-%                       State1#state{completed = []};
-%                   _ ->
-%                       State1
-%               end,
-%      %% If we return ok and not done this vnode will be considered
-%      %% to keep sending data.
-%      %% So we translate the reply type here
-%      ReplyType = case Type of
-%                      ok -> done;
-%                      partial -> ok
-%                  end,
-%      {ReplyType, State2};
-
-process_results({ok, _}, State) ->
-    {done, State};
-
-process_results(Result, State) ->
+process_results(Result, State=#state{}) ->
     lager:error("[coverage] Unknown process results call: ~p ~p",
                 [Result, State]),
     {done, State}.
 
-
-finish(clean, State = #state{accum= Completed, req_id = ReqID,
-                             from = From}) ->
-    From ! {ok, ReqID, Completed},
+finish(clean, State = #state{accum=Accum, req_id = ReqID, from = From}) ->
+    From ! {ok, ReqID, Accum},
     {stop, normal, State};
 
-finish({error, E}, State = #state{accum= Completed, req_id = ReqID,
-                             from = From}) ->
-    lager:error("[coverage] Finished with error: ~p", [E]),
-    From ! {ok, ReqID, Completed},
+finish({error, Reason}, State = #state{accum=Accum, req_id = ReqID, from = From}) ->
+    lager:error("[coverage] Finished with error: ~p", [Reason]),
+    From ! {ReqID, {partial, Reason, Accum}},
     {stop, normal, State};
 
 finish(How, State) ->
     lager:error("[coverage] Unknown finish call: ~p ~p", [How, State]),
     {error, failed}.
-
-%%%===================================================================
-%%% Internal Functions
-%%%===================================================================
-%update(Key, State) when is_binary(Key) ->
-%    update({Key, Key}, State);
-%
-%update(Key, State) when is_atom(Key) ->
-%    update({Key, Key}, State);
-%
-%update({Pts, {Key, V}}, State) when not is_binary(Pts) ->
-%    update({Key, {Pts, V}}, State);
-%
-%update({Key, Value}, State = #state{seen = Seen}) ->
-%    case sets:is_element(Key, Seen) of
-%        true ->
-%            State;
-%        false ->
-%            update1({Key, Value}, State)
-%    end.
-%
-%update1({Key, Value}, State = #state{r = R, completed = Competed, seen = Seen})
-%  when R < 2 ->
-%    Seen1 = sets:add_element(Key, Seen),
-%    State#state{seen = Seen1, completed = [Value | Competed]};
-%
-%update1({Key, Value},
-%        State = #state{r = R, completed = Competed, seen = Seen,
-%                       merge_fn = Merge, replies = Replies}) ->
-%    case maps:find(Key, Replies) of
-%        error ->
-%            Replies1 = maps:put(Key, [Value], Replies),
-%            State#state{replies = Replies1};
-%        {ok, Vals} when length(Vals) >= R - 1 ->
-%            Merged = Merge([Value | Vals]),
-%            Seen1 = sets:add_element(Key, Seen),
-%            Replies1 = maps:remove(Key, Replies),
-%            State#state{seen = Seen1, completed = [Merged | Competed],
-%                        replies = Replies1};
-%        {ok, Vals} ->
-%            Replies1 = maps:put(Key, [Value | Vals], Replies),
-%            State#state{replies = Replies1}
-%    end.

@@ -9,7 +9,7 @@
          crunch/2,
          read/2,
          read/3,
-         keys/1,
+         keys/0,
          set/3,
          append/3,
          incr/2,
@@ -78,8 +78,8 @@ read(Client, StatName, Opts) ->
     {ok, Val} = midi_read_fsm:read(Client, StatName, Opts),
     midi_utils:pretty_print(Val).
 
-keys(StateName) ->
-    midi_coverage_fsm:fold({keys, StateName}).
+keys() ->
+    midi_coverage_fsm:fold({keys}).
 
 get_dbg_preflist(Client, StatName) ->
     [get_dbg_preflist(Client, StatName, N) || N <- lists:seq(1,3)].
