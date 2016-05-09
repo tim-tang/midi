@@ -136,6 +136,10 @@ Testing::
     midi:read("rc", "midi").
     midi:srem("rc", "midi", "100").
 
+4- Query All Keys:
+
+    midi:keys().
+
 
 Testing Cluster::
 ---

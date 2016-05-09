@@ -58,6 +58,8 @@ wait(ReqID, FoldFn, Acc) ->
 %%% States
 %%%===================================================================
 init(_, [ReqID, From, Request]) ->
+    %% NVal - Indicates the replication factor and is used to
+    %% accurately create a minimal covering set of VNodes.
     N = application:get_env(midi, n, ?DEFAULT_N),
     R = application:get_env(midi, r, ?DEFAULT_R),
     PrimaryVNodeCoverage = R,
@@ -66,6 +68,8 @@ init(_, [ReqID, From, Request]) ->
     %% We timeout after 5s
     Timeout = 9000,
     State = #state{r = R, from = From, req_id = ReqID},
+    %%PrimaryVNodeCoverage - The number of primary VNodes
+    %%from the preference list to use in creating the coverage plan.
     {Request, VNodeSelector, N, PrimaryVNodeCoverage, ?SERVICE, ?MASTER, Timeout, State}.
 
 process_results({{_ReqId, {Partition, Node}}, Data},

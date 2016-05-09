@@ -17,6 +17,11 @@ start(_StartType, _StartArgs) ->
 
             ok = riak_core:register([{vnode_module, midi_stat_vnode}]),
             ok = riak_core_node_watcher:service_up(midi_stat, self()),
+            
+            %% Ring Event Handler
+            ok = riak_core_ring_events:add_guarded_handler(midi_ring_event_handler, []),
+            %% Node Event Handler
+            ok = riak_core_node_watcher_events:add_guarded_handler(midi_node_event_handler, []),
 
             {ok, Pid};
         {error, Reason} ->
