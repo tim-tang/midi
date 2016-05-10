@@ -42,8 +42,8 @@ equal(_, _) -> false.
 
 %% @pure
 %%
-%% @doc Closure around `equal/2' for use with HOFs (damn verbose
-%% Erlang).
+%% @doc Closure around `equal/2' for use with HOFs(higher order function), 
+%% Compare with vclock equal or not.
 -spec equal(ObjA::midi_obj()) -> fun((ObjB::midi_obj()) -> boolean()).
 equal(ObjA) ->
     fun(ObjB) -> equal(ObjA, ObjB) end.

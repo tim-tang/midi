@@ -156,9 +156,9 @@ merge(Replies) ->
     Objs = [Obj || {_,Obj} <- Replies],
     midi_obj:merge(Objs).
 
-%% @pure
 %%
 %% @doc Reconcile conflicts among conflicting values.
+%% More details refer => https://github.com/tim-tang/try-try-try/tree/master/04-riak-core-conflict-resolution 
 -spec reconcile([A::any()]) -> A::any().
 reconcile([#incr{}|_]=Vals) ->
     Get = fun(K, L) -> proplists:get_value(K, L, 0) end,
