@@ -119,7 +119,7 @@ handle_command({set, {ReqID, _}, StatName, Val}, _Sender, #state{stats=Stats0}=S
     {reply, {ok, ReqID}, State#state{stats=Stats}};
 
 handle_command({repair, undefined, StatName, Obj}, _Sender, #state{stats=Stats0}=State) ->
-    lager:info("repair performed ~p~n", [Obj]),
+    lager:info("[STAT VNODE] - Repair performed ~p~n", [Obj]),
     Stats = dict:store(StatName, Obj, Stats0),
     {noreply, State#state{stats=Stats}};
 
